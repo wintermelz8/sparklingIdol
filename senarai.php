@@ -1,0 +1,171 @@
+<!-- sparkling idol -->
+<!-- by : windah limbai -->
+<!-- File  : senarai.php -->
+
+<?php
+// fail sambungan ke pangkalan data
+include 'sambungdb.php';
+// mulakan session
+session_start();
+
+// sekatan pengguna - semak jika pengguna sudah mendaftar masuk
+if(!isset($_SESSION['idurusetia'])) {
+  //ke laman logmasuk.php untuk log masuk
+  header('location:logmasuk.php');
+}
+?>
+
+<!-- sambungan pada headerurusetia.php -->
+<?php include 'headerurusetia.php'; ?>
+
+<!-- <body> / isi kandungan -->
+<!-- Proses memaparkan senarai peserta pertandingan -->
+<?php
+// paparan pada laman SENARAI PESERTA
+if ($_GET['q'] == 1) {?>
+  <br>
+  <label><h3 style="text-align: center;"><b>SENARAI PESERTA</b></h3></label>
+  <br>
+  <!-- buat table untuk memaparkan senarai dalam jadual peserta -->
+  <table border=1; style="text-align:center; width:70%; margin: auto;">
+    <tr>
+      <th>Bil</th>
+      <th>Nama Peserta</th>
+      <th>No Kad Pengenalan</th>
+      <th>Jantina</th>
+      <th>Kelas</th>
+      <th>Tajuk Lagu</th>
+      <th>Penyanyi Asal</th>
+      <th>Tindakan</th>
+    </tr>
+    <?php
+    // mendapatkan data dari jadual peserta
+    $sql = mysqli_query($db, "SELECT peserta.*, lagu.* FROM peserta INNER JOIN lagu ON peserta.idlagu = lagu.idlagu");
+    // semak jika data ada
+    if (!$sql || mysqli_num_rows($sql) == 0) {
+      echo '<tr><td colspan="8">Peserta belum didaftarkan!</td></tr>';
+    } else {
+      $no = 1;
+      while ($row = mysqli_fetch_array($sql)) {
+        $peserta = $row['nama'];
+        $nokp = $row['nokp'];
+        $jantina = $row['jantina'];
+        $kelas = $row['kelas'];
+        $lagu = $row['tajuklagu'];
+        $penyanyi = $row['penyanyiasal'];
+          
+        //paparkan data dari jadual peserta
+        echo '<tr>
+          <td>'.$no++.'</td>
+          <td>'.$peserta.'</td>
+          <td>'.$nokp.'</td>
+          <td>'.$jantina.'</td>
+          <td>'.$kelas.'</td>
+          <td>'.$lagu.'</td>
+          <td>'.$penyanyi.'</td>
+          <td><a href="delete.php?q=1&id='.$nokp.'"><button> PADAM </button></a></td>
+        <tr>';
+      }
+    }
+}
+?>
+
+<!-- Proses memaparkan keputusan keseluruhan peserta -->
+<?php 
+// paparan laman KEPUTUSAN KESELURUHAN
+if ($_GET['q'] == 2) {?>
+  <br>
+  <center>
+    <label><h3><b>KEPUTUSAN KESELURUHAN</b></h3></label>
+  </center>
+  <br>
+  <!-- buat table untuk senarai peserta dan markahnya -->
+  <table border="1" style="width:70%; margin: auto; text-align: center;">
+    <tr>
+      <th>Bil</th>
+      <th>Nama Peserta</th>
+      <th>Pitching <br> (120 markah)</th>
+      <th>Tempo <br> (90 markah)</th>
+      <th>Ton/Mutu Suara <br> (45 markah)</th>
+      <th>Gaya Persembahan <br> (30 markah)</th>
+      <th>Pakaian <br> (15 markah)</th>
+      <th>Jumlah Markah <br> (300 markah)</th>
+    </tr>
+    <?php
+    // mendapatkan data dari jadual markah dan peserta
+    $sql = mysqli_query($db, "SELECT SUM(markah.pitching) as sumpitch, SUM(markah.tempo) as sumtempo, SUM(markah.suara) as sumsuara, SUM(markah.persembahan) as sumpersembahan, SUM(markah.pakaian) as sumpakaian, SUM(markah.jumlahmarkah) as sum, peserta.nama, peserta.nokp FROM markah INNER JOIN peserta ON markah.nokp = peserta.nokp GROUP BY nokp");
+    // semak jika data ada
+    if (!$sql || mysqli_num_rows($sql) == 0) {
+      echo '<tr><td colspan="9">Peserta belum didaftarkan!!</td></tr>';
+    } else {
+      $no = 1;
+      while ($row = mysqli_fetch_array($sql)) {
+        $nama = $row['nama'];
+        $nokp = $row['nokp'];
+        $pitching = $row['sumpitch'];
+        $tempo = $row['sumtempo'];
+        $suara = $row['sumsuara'];
+        $persembahan = $row['sumpersembahan'];
+        $pakaian = $row['sumpakaian'];
+        $jumlah = $row['sum'];
+
+        //paparkan data dari jadual markah dan peserta
+        echo '<tr>
+          <td>'.$no++.'</td>
+          <td align="left">'.$nama.'</td>
+          <td>'.$pitching.'</td>
+          <td>'.$tempo.'</td>
+          <td>'.$suara.'</td>
+          <td>'.$persembahan.'</td>
+          <td>'.$pakaian.'</td>
+          <td>'.$jumlah.'</td>
+        <tr>';
+      }
+    }
+  echo '</table>';
+}
+?>
+
+<!-- Proses memaparkan senarai juri -->
+<?php 
+// paparan laman SENARAI JURI
+if ($_GET['q'] == 3) { ?>
+  <br>
+  <center>
+    <label><h3><b>SENARAI JURI</b></h3></label>
+  </center>
+  <br>
+  <!-- buat table untuk senarai juri -->
+  <table border="1" style="width:70%; margin: auto; text-align: center;">
+    <tr>
+      <th>Bil</th>
+      <th>Nama Juri</th>
+      <th>Katalaluan</th>
+      <th>Tindakan</th>
+    </tr>
+    <?php
+    // mendapatkan data dari jadual juri
+    $sql = mysqli_query($db, "SELECT * FROM juri");
+    // semak jika data ada
+    if (!$sql || mysqli_num_rows($sql) == 0) {
+      echo '<tr><td colspan="4">Juri belum didaftarkan!!</td></tr>';
+    } else {
+      $no = 1;
+      while ($row = mysqli_fetch_array($sql)) {
+        $nama = $row['juri'];
+        $pwd = $row['katalaluan'];
+        $idjuri = $row['idjuri'];
+          
+        //paparkan data dari jadual juri
+        echo '<tr>
+          <td>'.$no++.'</td>
+          <td align="left">'.$nama.'</td>
+          <td>'.$pwd.'</td>
+          <td><a href="delete.php?q=2&idjuri='.$idjuri.'"><button> PADAM </button></a></td>
+        <tr>';
+      }
+    }
+  echo '</table>';
+}
+?>
+<!-- </body> tamat -->
